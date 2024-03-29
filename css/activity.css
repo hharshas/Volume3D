@@ -1,0 +1,99 @@
+#main-toolbar #activity-button {
+    background-image: url(../activity/activity-icon.svg);
+}
+
+body {
+    height: 100vh;
+}
+
+.palette-item {
+    width: 200px;
+    height: 30px;
+    padding-top: 15px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#item-six {
+    color: red;
+}
+
+.palette-item:hover {
+    background-color: #808080;
+}
+
+.palette-icon {
+    width: 30px;
+}
+
+.palette-text {
+    vertical-align: super;
+}
+
+#add-button-D4 {
+    background-image: url(../icons/volumes/Tetrahedron.svg);
+}
+
+#add-button-D6 {
+    background-image: url(../icons/volumes/Cube.svg);
+}
+
+#add-button-D8 {
+    background-image: url(../icons/volumes/Octahedron.svg);
+}
+
+#add-button-D12 {
+    background-image: url(../icons/volumes/Dodecahedron.svg);
+}
+
+#add-button-D20 {
+    background-image: url(../icons/volumes/Icosahedron.svg);
+}
+
+#del-button {
+    background-image: url(../icons/clear.svg);
+}
+
+#floor-color {
+    background-image: url(../icons/insert-picture.svg);
+}
+
+#is-label {
+    background-image: url(../icons/is-label.svg);
+}
+
+#accelerator {
+    background-image: url(../icons/throw.svg);
+}
+
+#result {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(5px);
+    /* Adjust the blur radius as needed */
+    background-color: rgba(255, 255, 255, 0.5);
+    /* Adjust the alpha value for the desired tint intensity */
+    border-radius: 10px;
+    /* Add rounded corners */
+    padding: 10px;
+    /* Add padding to make the text more readable */
+    font-size: x-large;
+}
+
+#color-table {
+    height: 220px;
+    width: 180px;
+}
+
+#color-body {
+    gap: auto;
+}
+
+#color-button {
+    height: 40px;
+    width: 40px;
+}

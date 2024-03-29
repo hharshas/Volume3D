@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>My Activity</title>
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover" />
+    <link rel="stylesheet" media="not screen and (device-width: 1200px) and (device-height: 900px)" href="lib/sugar-web/graphics/css/sugar-96dpi.css">
+    <link rel="stylesheet" media="screen and (device-width: 1200px) and (device-height: 900px)" href="lib/sugar-web/graphics/css/sugar-200dpi.css">
+    <link rel="stylesheet" href="css/activity.css">
+    <link rel="stylesheet" href="src/styles.css">
+    <script src="src/cannon.min.js"></script>
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.skypack.dev/three@0.90.0/build/three.module" } }
+    </script>
+    <script data-main="js/loader" src="lib/require.js"></script>
+    <script type="text/javascript" src="../../cordova.js"></script>
+</head>
+
+<body>
+    <div id="main-toolbar" class="toolbar">
+        <button class="toolbutton" id="activity-button" title="My Activity"></button>
+
+        <button class="toolbutton active" id="add-button-D4" title="Add Tetrahedron"></button>
+        <button class="toolbutton" id="add-button-D6" title="Add Cube"></button>
+        <button class="toolbutton" id="add-button-D8" title="Add Octahedron"></button>
+        <button class="toolbutton" id="add-button-D12" title="Add Dodecahedron"></button>
+        <button class="toolbutton" id="add-button-D20" title="Add Icosahedron"></button>
+        <button class="toolbutton" id="del-button" title="Clear Dices"></button>
+        <button class="toolbutton" id="is-label" title="Show Label"></button>
+        <button class="toolbutton" id="dice-color" title="Dice Color"></button>
+        <button class="toolbutton" id="floor-color" title="Floor Color"></button>
+        <button class="toolbutton" id="accelerator" title="Accelerator"></button>
+
+        <button class="toolbutton pull-right" id="stop-button" title="Stop"></button>
+    </div>
+    <div id="result">Welcome to Volume 3D activity</div>
+    <div id="ThreeJS"></div>
+    <!-- <script type="text/javascript" src="src/stats.min.js"></script> -->
+    <script type="module" src="src/index.js"></script>
+</body>
+
+</html>
