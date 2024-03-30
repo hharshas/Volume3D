@@ -762,7 +762,8 @@ var container,
     world,
     dice = [],
     type = 0,
-    label = 0;
+    label = 0,
+    diceValues = [];
 
 
 
@@ -829,7 +830,7 @@ function init() {
         side: THREE.DoubleSide,
         map: floortexture
     });
-    var floorGeometry = new THREE.PlaneGeometry(300, 300, 300, 300);
+    var floorGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.receiveShadow = true;
     floor.rotation.x = Math.PI / 2;
@@ -883,23 +884,61 @@ function init() {
     );
     world.add(floorBody);
 
-    //shake effect
-
-    function shakeFloor() {
-        var cnt = 0;
-        var interval = setInterval(() => {
-            cnt++;
-            if (cnt == 4) clearInterval(interval);
-            if (cnt % 2) camera.position.y += 1;
-            else camera.position.y -= 1;
-        }, 100)
-    }
-
 
     //Walls
 
     var colors = ["#ff0000", "#ffff00", "#00ff00", "#0000ff", "#ff00ff"];
-    var diceValues = [];
+
+
+    function randomDiceThrow() {
+        var die, textStyle = null;
+        if (label % 2) textStyle = "#000000";
+        var clr = $t.color;
+        // clr = document.getElementById("color-button").value;
+        // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
+        if (type == 0) {
+            die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
+        } else if (type == 1) {
+            die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
+        } else if (type == 2) {
+            die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
+        } else if (type == 3) {
+            die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
+        } else if (type == 4) {
+            die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
+        } else return;
+        die.getObject().name = die.getObject().uuid;
+        scene.add(die.getObject());
+        dice.push(die);
+        foreachdice(dice.length - 1);
+    }
+
+
+    renderer.domElement.onpointerdown = (event) => {
+        if (event.button === 0 && type == 5) {
+            // calculate pointer position in normalized device coordinates
+            // (-1 to +1) for both components
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children);
+            if (intersects.length > 0) {
+                console.log(intersects[0].object.name);
+                const objectName = intersects[0].object.name;
+                const obj = scene.getObjectByName(objectName);
+                var ind = -1;
+                dice.forEach((element, index) => {
+                    if (element.getObject().name === objectName) {
+                        console.log(index);
+                        ind = index;
+                    }
+                });
+                if (ind > -1) dice.splice(ind, 1);
+                scene.remove(obj);
+            }
+        }
+    }
 
     function foreachdice(a) {
         diceValues = [];
@@ -931,7 +970,20 @@ function init() {
         DiceManager.prepareValues(diceValues);
     }
 
+
+
+    function shakeFloor() {
+        var cnt = 0;
+        var interval = setInterval(() => {
+            cnt++;
+            if (cnt == 4) clearInterval(interval);
+            if (cnt % 2) camera.position.y += 1;
+            else camera.position.y -= 1;
+        }, 100)
+    }
+
     function accelerator() {
+        console.log(diceValues);
         shakeFloor();
         foreachdice(0);
         var sum = 0,
@@ -948,63 +1000,14 @@ function init() {
         document.getElementById("result").innerHTML += ` = ${sum}`;
     }
 
-    function randomDiceThrow() {
-        var die, textStyle = null;
-        if (label % 2) textStyle = "#000000";
-        var clr = $t.color;
-        // clr = document.getElementById("color-button").value;
-        // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
-        if (type == 0) {
-            die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
-        } else if (type == 1) {
-            die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
-        } else if (type == 2) {
-            die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
-        } else if (type == 3) {
-            die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
-        } else if (type == 4) {
-            die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
-        } else return;
-        die.getObject().name = die.getObject().uuid;
-        scene.add(die.getObject());
-        dice.push(die);
-        foreachdice(dice.length - 1);
-    }
-
-    const raycaster = new THREE.Raycaster();
-
-    renderer.domElement.onpointerdown = (event) => {
-        if (event.button === 0 && type == 5) {
-            // calculate pointer position in normalized device coordinates
-            // (-1 to +1) for both components
-            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-            pointer.y = -(event.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
-            raycaster.setFromCamera(pointer, camera);
-
-            const intersects = raycaster.intersectObjects(scene.children);
-            if (intersects.length > 0) {
-                console.log(intersects[0].object.name);
-                const objectName = intersects[0].object.name;
-                const obj = scene.getObjectByName(objectName);
-                var ind = -1;
-                dice.forEach((element, index) => {
-                    if (element.getObject().name === objectName) {
-                        console.log(index);
-                        ind = index;
-                    }
-                });
-                if (ind > -1) dice.splice(ind, 1);
-                scene.remove(obj);
-            }
-        }
-    }
+    document
+        .querySelector("#accelerator")
+        .addEventListener("click", accelerator);
 
     // document
     //     .querySelector("#ThreeJS")
     //     .addEventListener("click", randomDiceThrow);
-    document
-        .querySelector("#accelerator")
-        .addEventListener("click", accelerator);
+
     teal.changeTexture = function changeTexture(value) {
         scene.remove(floor);
         var selectedValue = value;
@@ -1023,86 +1026,8 @@ function init() {
         scene.add(floor);
     };
 
-    const mouse = new THREE.Vector2();
-    const intersectionPoint = new THREE.Vector3();
-    const planeNormal = new THREE.Vector3();
-    const plane = new THREE.Plane();
 
-    const pointer = new THREE.Vector2();
 
-    document
-        .querySelector("#ThreeJS")
-        .addEventListener('mousemove', (e) => {
-            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(e.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
-            planeNormal.copy(camera.position).normalize();
-            plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
-            raycaster.setFromCamera(mouse, camera);
-            raycaster.ray.intersectPlane(plane, intersectionPoint);
-        });
-    var cnt = 0;
-    const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
-    const sphereMat = new THREE.MeshStandardMaterial({
-        color: 0xFFEA00,
-        metalness: 0,
-        roughness: 0
-    });
-    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mousedown', (e) => {
-    //         scene.add(sphereMesh);
-    //         console.log("hello");
-    //         sphereMesh.position.copy(intersectionPoint);
-    //         cnt = 1;
-    //     })
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mouseup', (e) => {
-    //         sphereMesh.scale.x = 0.01;
-    //         sphereMesh.scale.y = 0.01;
-    //         sphereMesh.scale.z = 0.01;
-    //         scene.remove(sphereMesh);
-    //         cnt = 0;
-    //     })
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mousemove', (e) => {
-    //         if (cnt) {
-    //             sphereMesh.scale.x += 0.2;
-    //             sphereMesh.scale.y += 0.2;
-    //             sphereMesh.scale.z += 0.2;
-    //         }
-    // })
-    let scaling = false;
-
-    function increaseScale() {
-        if (scaling) {
-            sphereMesh.scale.x += 0.2;
-            sphereMesh.scale.y += 0.2;
-            sphereMesh.scale.z += 0.2;
-            requestAnimationFrame(increaseScale);
-        }
-    }
-
-    ['mousedown', 'touchstart'].forEach(function(e) {
-        window.addEventListener(e, () => {
-            scene.add(sphereMesh);
-            sphereMesh.position.copy(intersectionPoint);
-            scaling = true;
-            increaseScale();
-        });
-    });
-
-    ['mouseup', 'touchend'].forEach(function(e) {
-        window.addEventListener(e, () => {
-            sphereMesh.scale.x = 0.01;
-            sphereMesh.scale.y = 0.01;
-            sphereMesh.scale.z = 0.01;
-            scene.remove(sphereMesh);
-            scaling = false;
-        });
-    });
 
 
     // document
@@ -1158,6 +1083,125 @@ function init() {
     //     })
 }
 // document.addEventListener( "mousemove", onDocumentMouseMove, false );
+const mouse = new THREE.Vector2();
+const intersectionPoint = new THREE.Vector3();
+const planeNormal = new THREE.Vector3();
+const plane = new THREE.Plane();
+
+const pointer = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+
+
+document
+    .querySelector("#ThreeJS")
+    .addEventListener('mousemove', (e) => {
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
+        planeNormal.copy(camera.position).normalize();
+        plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
+        raycaster.setFromCamera(mouse, camera);
+        raycaster.ray.intersectPlane(plane, intersectionPoint);
+    });
+
+// const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
+// const sphereMat = new THREE.MeshStandardMaterial({
+//     color: 0xFFEA00,
+//     metalness: 0,
+//     roughness: 0
+// });
+let sphereMesh;
+
+let isScaling = false;
+let initialMousePosition = new THREE.Vector3();
+let distanceThreshold = 100; // Distance threshold for scaling
+
+function onMouseDown(event) {
+    isScaling = true;
+    var die, textStyle = null;
+    if (label % 2) textStyle = "#000000";
+    var clr = $t.color;
+    if (type == 0) {
+        sphereMesh = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
+    } else if (type == 1) {
+        sphereMesh = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
+    } else if (type == 2) {
+        sphereMesh = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
+    } else if (type == 3) {
+        sphereMesh = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
+    } else if (type == 4) {
+        sphereMesh = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
+    } else return;
+    scene.add(sphereMesh);
+    sphereMesh.position.copy(intersectionPoint);
+    initialMousePosition.copy(intersectionPoint);
+}
+
+function onMouseUp() {
+    var die, textStyle = null;
+    if (label % 2) textStyle = "#000000";
+    var clr = $t.color;
+    if (type == 0) {
+        die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
+    } else if (type == 1) {
+        die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
+    } else if (type == 2) {
+        die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
+    } else if (type == 3) {
+        die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
+    } else if (type == 4) {
+        die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
+    } else return;
+    die.getObject().name = die.getObject().uuid;
+    scene.add(die.getObject());
+    dice.push(die);
+    let yRand = Math.random() * 20;
+    die.getObject().position.copy(initialMousePosition);
+    die.getObject().scale.copy(sphereMesh.scale);
+    die.getObject().quaternion.x =
+        ((Math.random() * 90 - 45) * Math.PI) / 180;
+    die.getObject().quaternion.z =
+        ((Math.random() * 90 - 45) * Math.PI) / 180;
+    die.updateBodyFromMesh();
+    let rand = Math.random() * 5;
+    die
+        .getObject()
+        .body.velocity.set(0, 0, 0);
+    die
+        .getObject()
+        .body.angularVelocity.set(
+            20 * Math.random() - 10,
+            20 * Math.random() - 10,
+            20 * Math.random() - 10
+        );
+    let v = Math.ceil(Math.random() * die.values);
+    diceValues.push({ dice: die, value: v });
+
+    DiceManager.prepareValues(diceValues);
+    sphereMesh.scale.x = 0.01;
+    sphereMesh.scale.y = 0.01;
+    sphereMesh.scale.z = 0.01;
+    scene.remove(sphereMesh);
+    isScaling = false;
+}
+
+function updateSphereScale() {
+    if (isScaling) {
+        let distance = initialMousePosition.distanceTo(intersectionPoint);
+        let scaleFactor = 0.6;
+        sphereMesh.scale.x = distance * scaleFactor;
+        sphereMesh.scale.y = distance * scaleFactor;
+        sphereMesh.scale.z = distance * scaleFactor;
+    }
+}
+
+['mouseup', 'touchend'].forEach(function(e) {
+    window.addEventListener(e, onMouseUp);
+});
+
+['mousedown', 'touchstart'].forEach(function(e) {
+    window.addEventListener(e, onMouseDown);
+});
+
 
 function switchToType(newtype) {
     document.getElementById("add-button-D4").classList.remove('active');
@@ -1222,6 +1266,7 @@ document.getElementById("is-label").addEventListener('click', () => {
 requestAnimationFrame(animate);
 
 function animate() {
+    updateSphereScale();
     updatePhysics();
     render();
     update();
