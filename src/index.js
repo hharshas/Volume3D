@@ -762,7 +762,7 @@ var container,
     type = 0,
     label = 0;
 
-const pointer = new THREE.Vector2();
+
 
 init();
 
@@ -779,7 +779,7 @@ function init() {
         FAR = 20000;
     camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     scene.add(camera);
-    camera.position.set(0, 30, 30);
+    camera.position.set(0, 20, 60);
     // RENDERER
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -827,11 +827,27 @@ function init() {
         side: THREE.DoubleSide,
         map: floortexture
     });
-    var floorGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
+    var floorGeometry = new THREE.PlaneGeometry(300, 300, 300, 300);
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.receiveShadow = true;
     floor.rotation.x = Math.PI / 2;
     scene.add(floor);
+
+    var width = 10;
+    var length = 8;
+    // var geometry = new THREE.BoxGeometry(width, length, height);
+    // var textureloader = new THREE.TextureLoader();
+    // var texture = textureloader.load('images/tile_brick.png', function(tx) {
+    //     var material = new THREE.MeshBasicMaterial({
+    //         map: tx,
+    //         wireframe: false
+    //     });
+    //     var cube = new THREE.Mesh(geometry, material);
+    //     scene.add(cube);
+    // });
+    floortexture.wrapS = THREE.RepeatWrapping;
+    floortexture.wrapT = THREE.RepeatWrapping;
+    floortexture.repeat.set(width, length);
     // SKYBOX/FOG
     var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
     var skyBoxMaterial = new THREE.MeshPhongMaterial({
@@ -956,39 +972,34 @@ function init() {
     const raycaster = new THREE.Raycaster();
 
     renderer.domElement.onpointerdown = (event) => {
-            if (event.button === 0 && type == 5) {
-                // calculate pointer position in normalized device coordinates
-                // (-1 to +1) for both components
-                pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-                pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-                raycaster.setFromCamera(pointer, camera);
+        if (event.button === 0 && type == 5) {
+            // calculate pointer position in normalized device coordinates
+            // (-1 to +1) for both components
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
 
-                const intersects = raycaster.intersectObjects(scene.children);
-                if (intersects.length > 0) {
-                    console.log(intersects[0].object.name);
-                    const objectName = intersects[0].object.name;
-                    const obj = scene.getObjectByName(objectName);
-                    var ind = -1;
-                    dice.forEach((element, index) => {
-                        if (element.getObject().name === objectName) {
-                            console.log(index);
-                            ind = index;
-                        }
-                    });
-                    if (ind > -1) dice.splice(ind, 1);
-                    scene.remove(obj);
-                }
+            const intersects = raycaster.intersectObjects(scene.children);
+            if (intersects.length > 0) {
+                console.log(intersects[0].object.name);
+                const objectName = intersects[0].object.name;
+                const obj = scene.getObjectByName(objectName);
+                var ind = -1;
+                dice.forEach((element, index) => {
+                    if (element.getObject().name === objectName) {
+                        console.log(index);
+                        ind = index;
+                    }
+                });
+                if (ind > -1) dice.splice(ind, 1);
+                scene.remove(obj);
             }
         }
-        // function onDocumentMouseMove(event) {
-        // 	pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-        //     pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    }
 
-    // }
-
-    document
-        .querySelector("#ThreeJS")
-        .addEventListener("click", randomDiceThrow);
+    // document
+    //     .querySelector("#ThreeJS")
+    //     .addEventListener("click", randomDiceThrow);
     document
         .querySelector("#accelerator")
         .addEventListener("click", accelerator);
@@ -1009,6 +1020,80 @@ function init() {
         floor.rotation.x = Math.PI / 2;
         scene.add(floor);
     };
+
+    const mouse = new THREE.Vector2();
+    const intersectionPoint = new THREE.Vector3();
+    const planeNormal = new THREE.Vector3();
+    const plane = new THREE.Plane();
+
+    const pointer = new THREE.Vector2();
+
+    document
+        .querySelector("#ThreeJS")
+        .addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
+            planeNormal.copy(camera.position).normalize();
+            plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
+            raycaster.setFromCamera(mouse, camera);
+            raycaster.ray.intersectPlane(plane, intersectionPoint);
+        });
+
+    document
+        .querySelector("#ThreeJS")
+        .addEventListener('click', (e) => {
+            // const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
+            // const sphereMat = new THREE.MeshStandardMaterial({
+            //     color: 0xFFEA00,
+            //     metalness: 0,
+            //     roughness: 0
+            // });
+            // const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+            // scene.add(sphereMesh);
+            var die, textStyle = null;
+            if (label % 2) textStyle = "#000000";
+            var clr = $t.color;
+            // clr = document.getElementById("color-button").value;
+            // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
+            if (type == 0) {
+                die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 1) {
+                die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 2) {
+                die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 3) {
+                die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 4) {
+                die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else return;
+            die.getObject().name = die.getObject().uuid;
+            scene.add(die.getObject());
+            dice.push(die);
+
+            // die.getObject().position.copy(intersectionPoint);
+            let yRand = Math.random() * 20;
+            die.getObject().position.copy(intersectionPoint);
+            die.getObject().quaternion.x =
+                ((Math.random() * 90 - 45) * Math.PI) / 180;
+            die.getObject().quaternion.z =
+                ((Math.random() * 90 - 45) * Math.PI) / 180;
+            die.updateBodyFromMesh();
+            let rand = Math.random() * 5;
+            die
+                .getObject()
+                .body.velocity.set(0, 40, 0);
+            die
+                .getObject()
+                .body.angularVelocity.set(
+                    20 * Math.random() - 10,
+                    20 * Math.random() - 10,
+                    20 * Math.random() - 10
+                );
+            let v = Math.ceil(Math.random() * die.values);
+            diceValues.push({ dice: die, value: v });
+
+            DiceManager.prepareValues(diceValues);
+        })
 }
 // document.addEventListener( "mousemove", onDocumentMouseMove, false );
 
@@ -1091,43 +1176,6 @@ function updatePhysics() {
 }
 
 function update() {
-
-    //   // create a Ray with origin at the mouse position
-    //   //   and direction into the scene (camera direction)
-    //   var vector = new THREE.Vector3(pointer.x, pointer.y, 1);
-    //   vector.unproject(camera);
-    //   var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-
-    //   // create an array containing all objects in the scene with which the ray intersects
-    //   var intersects = ray.intersectObjects(scene.children);
-
-    //   // INTERSECTED = the object in the scene currently closest to the camera 
-    //   //		and intersected by the Ray projected from the mouse position 	
-
-    //   // if there is one (or more) intersections
-    //   if (intersects.length > 0) {
-    //     // if the closest object intersected is not the currently stored intersection object
-    //     if (intersects[0].object != INTERSECTED) {
-    //       // restore previous intersection object (if it exists) to its original color
-    //       if (INTERSECTED)
-    //         INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
-    //       // store reference to closest object as current intersection object
-    //       INTERSECTED = intersects[0].object;
-    //       // store color of closest object (for later restoration)
-    //       INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-    //       // set a new color for closest object
-    //       INTERSECTED.material.color.setHex(0xffff00);
-    //     }
-    //   } else // there are no intersections
-    //   {
-    //     // restore previous intersection object (if it exists) to its original color
-    //     if (INTERSECTED)
-    //       INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
-    //     // remove previous intersection object reference
-    //     //     by setting current intersection object to "nothing"
-    //     INTERSECTED = null;
-    //   }
-
     controls.update();
     // stats.update();
 }
