@@ -1,4 +1,4 @@
-import * as THREE from '../src/build/three.module.js';
+import * as THREE from 'three';
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
 
 window.teal = {};
@@ -322,9 +322,7 @@ class DiceObject {
     }
 
     getGeometry() {
-        let radius = this.size;
-
-        // let radius = this.size * this.scaleFactor;
+        let radius = this.size * this.scaleFactor;
 
         let vectors = new Array(this.vertices.length);
         for (let i = 0; i < this.vertices.length; ++i) {
@@ -781,7 +779,7 @@ function init() {
         FAR = 20000;
     camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     scene.add(camera);
-    camera.position.set(0, 28, 60);
+    camera.position.set(0, 20, 60);
     // RENDERER
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -792,7 +790,7 @@ function init() {
     container.appendChild(renderer.domElement);
     // EVENTS
     // CONTROLS
-    // controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     // STATS
     // stats = new Stats();
     // stats.domElement.style.position = "absolute";
@@ -978,7 +976,7 @@ function init() {
             // calculate pointer position in normalized device coordinates
             // (-1 to +1) for both components
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-            pointer.y = -(event.clientY / (window.innerHeight + document.getElementById("main-toolbar").clientHeight)) * 2 + 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(pointer, camera);
 
             const intersects = raycaster.intersectObjects(scene.children);
@@ -1040,112 +1038,62 @@ function init() {
             raycaster.setFromCamera(mouse, camera);
             raycaster.ray.intersectPlane(plane, intersectionPoint);
         });
-    var cnt = 0;
-    const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
-    const sphereMat = new THREE.MeshStandardMaterial({
-        color: 0xFFEA00,
-        metalness: 0,
-        roughness: 0
-    });
-    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mousedown', (e) => {
-    //         scene.add(sphereMesh);
-    //         sphereMesh.position.copy(intersectionPoint);
-    //         cnt = 1;
-    //     })
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mouseup', (e) => {
-    //         scene.remove(sphereMesh);
-    //         cnt = 0;
-    //     })
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('mouseup', (e) => {
-    //         if (cnt) {
 
-    //         }
-    //     })
-    let scaling = false;
+    document
+        .querySelector("#ThreeJS")
+        .addEventListener('click', (e) => {
+            // const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
+            // const sphereMat = new THREE.MeshStandardMaterial({
+            //     color: 0xFFEA00,
+            //     metalness: 0,
+            //     roughness: 0
+            // });
+            // const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+            // scene.add(sphereMesh);
+            var die, textStyle = null;
+            if (label % 2) textStyle = "#000000";
+            var clr = $t.color;
+            // clr = document.getElementById("color-button").value;
+            // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
+            if (type == 0) {
+                die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 1) {
+                die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 2) {
+                die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 3) {
+                die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else if (type == 4) {
+                die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
+            } else return;
+            die.getObject().name = die.getObject().uuid;
+            scene.add(die.getObject());
+            dice.push(die);
 
-    function increaseScale() {
-        if (scaling) {
-            sphereMesh.scale.x += 0.2;
-            sphereMesh.scale.y += 0.2;
-            sphereMesh.scale.z += 0.2;
-            requestAnimationFrame(increaseScale);
-        }
-    }
+            // die.getObject().position.copy(intersectionPoint);
+            let yRand = Math.random() * 20;
+            die.getObject().position.copy(intersectionPoint);
+            die.getObject().quaternion.x =
+                ((Math.random() * 90 - 45) * Math.PI) / 180;
+            die.getObject().quaternion.z =
+                ((Math.random() * 90 - 45) * Math.PI) / 180;
+            die.updateBodyFromMesh();
+            let rand = Math.random() * 5;
+            die
+                .getObject()
+                .body.velocity.set(0, 40, 0);
+            die
+                .getObject()
+                .body.angularVelocity.set(
+                    20 * Math.random() - 10,
+                    20 * Math.random() - 10,
+                    20 * Math.random() - 10
+                );
+            let v = Math.ceil(Math.random() * die.values);
+            diceValues.push({ dice: die, value: v });
 
-    window.addEventListener('mousedown', () => {
-        scene.add(sphereMesh);
-        sphereMesh.position.copy(intersectionPoint);
-        scaling = true;
-        increaseScale();
-    });
-
-    window.addEventListener('mouseup', () => {
-        sphereMesh.scale.x = 0.01;
-        sphereMesh.scale.y = 0.01;
-        sphereMesh.scale.z = 0.01;
-        scene.remove(sphereMesh);
-        scaling = false;
-    });
-
-
-    // document
-    //     .querySelector("#ThreeJS")
-    //     .addEventListener('click', (e) => {
-    //         // const sphereGeo = new THREE.SphereGeometry(0.125, 30, 30);
-    //         // const sphereMat = new THREE.MeshStandardMaterial({
-    //         //     color: 0xFFEA00,
-    //         //     metalness: 0,
-    //         //     roughness: 0
-    //         // });
-    //         // const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-    //         // scene.add(sphereMesh);
-    //         var die, textStyle = null;
-    //         if (label % 2) textStyle = "#000000";
-    //         var clr = $t.color;
-    //         if (type == 0) {
-    //             die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
-    //         } else if (type == 1) {
-    //             die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
-    //         } else if (type == 2) {
-    //             die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
-    //         } else if (type == 3) {
-    //             die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
-    //         } else if (type == 4) {
-    //             die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
-    //         } else return;
-    //         die.getObject().name = die.getObject().uuid;
-    //         scene.add(die.getObject());
-    //         dice.push(die);
-    //         let yRand = Math.random() * 20;
-    //         die.getObject().position.copy(intersectionPoint);
-    //         die.getObject().quaternion.x =
-    //             ((Math.random() * 90 - 45) * Math.PI) / 180;
-    //         die.getObject().quaternion.z =
-    //             ((Math.random() * 90 - 45) * Math.PI) / 180;
-    //         die.updateBodyFromMesh();
-    //         let rand = Math.random() * 5;
-    //         die
-    //             .getObject()
-    //             .body.velocity.set(0, 40, 0);
-    //         die
-    //             .getObject()
-    //             .body.angularVelocity.set(
-    //                 20 * Math.random() - 10,
-    //                 20 * Math.random() - 10,
-    //                 20 * Math.random() - 10
-    //             );
-    //         let v = Math.ceil(Math.random() * die.values);
-    //         diceValues.push({ dice: die, value: v });
-
-    //         DiceManager.prepareValues(diceValues);
-    //     })
+            DiceManager.prepareValues(diceValues);
+        })
 }
 // document.addEventListener( "mousemove", onDocumentMouseMove, false );
 
@@ -1228,7 +1176,7 @@ function updatePhysics() {
 }
 
 function update() {
-    // controls.update();
+    controls.update();
     // stats.update();
 }
 
