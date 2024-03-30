@@ -1052,28 +1052,22 @@ function init() {
     //     .querySelector("#ThreeJS")
     //     .addEventListener('mousedown', (e) => {
     //         scene.add(sphereMesh);
-    //         console.log("hello");
     //         sphereMesh.position.copy(intersectionPoint);
     //         cnt = 1;
     //     })
     // document
     //     .querySelector("#ThreeJS")
     //     .addEventListener('mouseup', (e) => {
-    //         sphereMesh.scale.x = 0.01;
-    //         sphereMesh.scale.y = 0.01;
-    //         sphereMesh.scale.z = 0.01;
     //         scene.remove(sphereMesh);
     //         cnt = 0;
     //     })
     // document
     //     .querySelector("#ThreeJS")
-    //     .addEventListener('mousemove', (e) => {
+    //     .addEventListener('mouseup', (e) => {
     //         if (cnt) {
-    //             sphereMesh.scale.x += 0.2;
-    //             sphereMesh.scale.y += 0.2;
-    //             sphereMesh.scale.z += 0.2;
+
     //         }
-    // })
+    //     })
     let scaling = false;
 
     function increaseScale() {
@@ -1085,23 +1079,19 @@ function init() {
         }
     }
 
-    ['mousedown', 'touchstart'].forEach(function(e) {
-        window.addEventListener(e, () => {
-            scene.add(sphereMesh);
-            sphereMesh.position.copy(intersectionPoint);
-            scaling = true;
-            increaseScale();
-        });
+    window.addEventListener('mousedown', () => {
+        scene.add(sphereMesh);
+        sphereMesh.position.copy(intersectionPoint);
+        scaling = true;
+        increaseScale();
     });
 
-    ['mouseup', 'touchend'].forEach(function(e) {
-        window.addEventListener(e, () => {
-            sphereMesh.scale.x = 0.01;
-            sphereMesh.scale.y = 0.01;
-            sphereMesh.scale.z = 0.01;
-            scene.remove(sphereMesh);
-            scaling = false;
-        });
+    window.addEventListener('mouseup', () => {
+        sphereMesh.scale.x = 0.01;
+        sphereMesh.scale.y = 0.01;
+        sphereMesh.scale.z = 0.01;
+        scene.remove(sphereMesh);
+        scaling = false;
     });
 
 
