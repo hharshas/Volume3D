@@ -1,5 +1,7 @@
-import * as THREE from 'three';
-// import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
+import * as THREE from '../src/three.module.js';
+import { GUI } from "../src/dat.gui.module.js";
+import { OrbitControls } from "../src/OrbitControls.js";
+import { OrbitControlsGizmo } from "../src/OrbitControlsGizmo.js";
 
 window.teal = {};
 window.$t = window.teal;
@@ -760,7 +762,8 @@ var container,
     world,
     dice = [],
     type = 0,
-    label = 0;
+    label = 0,
+    controlsGizmo;
 
 
 let sphereMesh;
@@ -782,6 +785,7 @@ init();
 function init() {
     // SCENE
     scene = new THREE.Scene();
+
     // CAMERA
     var SCREEN_WIDTH = window.innerWidth,
         SCREEN_HEIGHT = window.innerHeight - document.getElementById("main-toolbar").clientHeight;
@@ -791,7 +795,14 @@ function init() {
         FAR = 20000;
     camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     scene.add(camera);
-    camera.position.set(0, 20, 60);
+    // Position the camera relative to the icon
+    // 13 84 85
+    const cameraDistance = 60;
+    const cameraHeight = 30;
+    camera.position.y = cameraHeight;
+    camera.position.z = cameraDistance;
+    camera.lookAt(0, 30, 0);
+
     // RENDERER
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -801,8 +812,21 @@ function init() {
     container = document.getElementById("ThreeJS");
     container.appendChild(renderer.domElement);
     // EVENTS
+
     // CONTROLS
-    // controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enabled = false;
+
+    // Obit Controls Gizmo
+    controlsGizmo = new OrbitControlsGizmo(controls, { size: 100, padding: 8 });
+
+    // Add the Gizmo to the document
+    document.getElementById("rotate-btn").appendChild(controlsGizmo.domElement);
+
+    // axes Helper
+    // const axesHelper = new THREE.AxesHelper(100);
+    // scene.add(axesHelper);
+
     // STATS
     // stats = new Stats();
     // stats.domElement.style.position = "absolute";
@@ -835,9 +859,9 @@ function init() {
         render
     );
     var floorMaterial = new THREE.MeshBasicMaterial({
-        color: "#5c4937",
+        color: "#fd9900",
         side: THREE.DoubleSide,
-        map: floortexture
+        // map: floortexture
     });
     var floorGeometry = new THREE.PlaneGeometry(300, 300, 300, 300);
     var floor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -860,6 +884,9 @@ function init() {
     floortexture.wrapS = THREE.RepeatWrapping;
     floortexture.wrapT = THREE.RepeatWrapping;
     floortexture.repeat.set(width, length);
+
+
+
     // SKYBOX/FOG
     var skyBoxGeometry = new THREE.CubeGeometry(10000, 10000, 10000);
     var skyBoxMaterial = new THREE.MeshPhongMaterial({
@@ -904,6 +931,44 @@ function init() {
             else camera.position.y -= 1;
         }, 100)
     }
+
+    const zoomInButton = document.getElementById("zoom-in");
+    const zoomOutButton = document.getElementById("zoom-out");
+
+    const zoomInFunction = (e) => {
+        const fov = getFov();
+        camera.fov = clickZoom(fov, "zoomIn");
+        camera.updateProjectionMatrix();
+    };
+
+    zoomInButton.addEventListener("click", zoomInFunction);
+
+    const zoomOutFunction = (e) => {
+        const fov = getFov();
+        camera.fov = clickZoom(fov, "zoomOut");
+        camera.updateProjectionMatrix();
+    };
+
+    zoomOutButton.addEventListener("click", zoomOutFunction);
+
+    const clickZoom = (value, zoomType) => {
+        if (value >= 20 && zoomType === "zoomIn") {
+            return value - 5;
+        } else if (value <= 75 && zoomType === "zoomOut") {
+            return value + 5;
+        } else {
+            return value;
+        }
+    };
+
+    const getFov = () => {
+        return Math.floor(
+            (2 *
+                Math.atan(camera.getFilmHeight() / 2 / camera.getFocalLength()) *
+                180) /
+            Math.PI
+        );
+    };
 
 
     //Walls
@@ -1033,8 +1098,6 @@ function init() {
         scene.add(floor);
     };
 
-
-
     document
         .querySelector("#ThreeJS")
         .addEventListener('mousemove', (e) => {
@@ -1048,6 +1111,7 @@ function init() {
 
 
     function onMouseDown(event) {
+        if (type === 5) return;
         isScaling = true;
         var die, textStyle = null;
         if (label % 2) textStyle = "#000000";
@@ -1062,7 +1126,7 @@ function init() {
             sphereMesh = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
         } else if (type == 4) {
             sphereMesh = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle }).getObject();
-        } else return;
+        }
         scene.add(sphereMesh);
         sphereMesh.position.copy(intersectionPoint);
         initialMousePosition.copy(intersectionPoint);
@@ -1077,21 +1141,22 @@ function init() {
         // });
         // const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
         // scene.add(sphereMesh);
+
         var die, textStyle = null;
         if (label % 2) textStyle = "#000000";
         var clr = $t.color;
         // clr = document.getElementById("color-button").value;
         // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
         if (type == 0) {
-            die = new DiceD4({ size: 1.5, backColor: clr, fontColor: textStyle });
+            die = new DiceD4({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
         } else if (type == 1) {
-            die = new DiceD6({ size: 1.5, backColor: clr, fontColor: textStyle });
+            die = new DiceD6({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
         } else if (type == 2) {
-            die = new DiceD8({ size: 1.5, backColor: clr, fontColor: textStyle });
+            die = new DiceD8({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
         } else if (type == 3) {
-            die = new DiceD12({ size: 1.5, backColor: clr, fontColor: textStyle });
+            die = new DiceD12({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
         } else if (type == 4) {
-            die = new DiceD20({ size: 1.5, backColor: clr, fontColor: textStyle });
+            die = new DiceD20({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
         } else return;
         die.getObject().name = die.getObject().uuid;
         scene.add(die.getObject());
@@ -1100,7 +1165,7 @@ function init() {
         // die.getObject().position.copy(intersectionPoint);
         let yRand = Math.random() * 20;
         die.getObject().position.copy(initialMousePosition);
-        die.getObject().scale.copy(sphereMesh.scale);
+        // die.getObject().scale.copy(sphereMesh.scale);
         die.getObject().quaternion.x =
             ((Math.random() * 90 - 45) * Math.PI) / 180;
         die.getObject().quaternion.z =
@@ -1139,9 +1204,9 @@ function updateSphereScale() {
     if (isScaling) {
         let distance = initialMousePosition.distanceTo(intersectionPoint);
         let scaleFactor = 0.6;
-        sphereMesh.scale.x = distance * scaleFactor;
-        sphereMesh.scale.y = distance * scaleFactor;
-        sphereMesh.scale.z = distance * scaleFactor;
+        sphereMesh.scale.x = Math.min(distance * scaleFactor, 2);
+        sphereMesh.scale.y = Math.min(distance * scaleFactor, 2);
+        sphereMesh.scale.z = Math.min(distance * scaleFactor, 2);
     }
 }
 // document.addEventListener( "mousemove", onDocumentMouseMove, false );
