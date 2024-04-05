@@ -869,22 +869,6 @@ function init() {
     floor.rotation.x = Math.PI / 2;
     scene.add(floor);
 
-    var width = 10;
-    var length = 8;
-    // var geometry = new THREE.BoxGeometry(width, length, height);
-    // var textureloader = new THREE.TextureLoader();
-    // var texture = textureloader.load('images/tile_brick.png', function(tx) {
-    //     var material = new THREE.MeshBasicMaterial({
-    //         map: tx,
-    //         wireframe: false
-    //     });
-    //     var cube = new THREE.Mesh(geometry, material);
-    //     scene.add(cube);
-    // });
-    floortexture.wrapS = THREE.RepeatWrapping;
-    floortexture.wrapT = THREE.RepeatWrapping;
-    floortexture.repeat.set(width, length);
-
 
 
     // SKYBOX/FOG
@@ -1096,6 +1080,12 @@ function init() {
         floor.receiveShadow = true;
         floor.rotation.x = Math.PI / 2;
         scene.add(floor);
+
+        var width = 10;
+        var length = 8;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(width, length);
     };
 
     document
@@ -1141,6 +1131,10 @@ function init() {
         // });
         // const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
         // scene.add(sphereMesh);
+        var sz = sphereMesh.scale.length();
+        sphereMesh.scale.copy(0, 0, 0);
+        scene.remove(sphereMesh);
+        isScaling = false;
 
         var die, textStyle = null;
         if (label % 2) textStyle = "#000000";
@@ -1148,15 +1142,15 @@ function init() {
         // clr = document.getElementById("color-button").value;
         // var textStyle = document.querySelector("input[name=switch-one]:checked").value;
         if (type == 0) {
-            die = new DiceD4({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
+            die = new DiceD4({ size: sz, backColor: clr, fontColor: textStyle });
         } else if (type == 1) {
-            die = new DiceD6({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
+            die = new DiceD6({ size: sz, backColor: clr, fontColor: textStyle });
         } else if (type == 2) {
-            die = new DiceD8({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
+            die = new DiceD8({ size: sz, backColor: clr, fontColor: textStyle });
         } else if (type == 3) {
-            die = new DiceD12({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
+            die = new DiceD12({ size: sz, backColor: clr, fontColor: textStyle });
         } else if (type == 4) {
-            die = new DiceD20({ size: sphereMesh.scale.length(), backColor: clr, fontColor: textStyle });
+            die = new DiceD20({ size: sz, backColor: clr, fontColor: textStyle });
         } else return;
         die.getObject().name = die.getObject().uuid;
         scene.add(die.getObject());
@@ -1186,9 +1180,6 @@ function init() {
         diceValues.push({ dice: die, value: v });
 
         DiceManager.prepareValues(diceValues);
-        sphereMesh.scale.copy(0, 0, 0);
-        scene.remove(sphereMesh);
-        isScaling = false;
     }
     ['mousedown', 'touchstart'].forEach(function(e) {
         document.getElementById("ThreeJS").addEventListener(e, onMouseDown);

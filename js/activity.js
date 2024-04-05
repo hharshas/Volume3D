@@ -6,12 +6,12 @@ define(["sugar-web/activity/activity", "sugar-web/graphics/colorpalette", "textu
         // Initialize the activit   y.
         activity.setup();
 
-        var diceColor = document.getElementById("dice-color");
-        var changeDiceColor = new colorpalette.ColorPalette(diceColor);
-        changeDiceColor.setColor('rgb(255,255,255)');
-        changeDiceColor.addEventListener('colorChange', function(e) {
-            $t.color = e.detail.color;
-        });
+        // var diceColor = document.getElementById("dice-color");
+        // var changeDiceColor = new colorpalette.ColorPalette(diceColor);
+        // changeDiceColor.setColor('rgb(255,255,255)');
+        // changeDiceColor.addEventListener('colorChange', function(e) {
+        //     $t.color = e.detail.color;
+        // });
 
         var add_desktexture = new texturepalette.TexturePalette(document.getElementById("floor-color"), "Add Textture");
         add_desktexture.addEventListener('addMat', function(event) {
